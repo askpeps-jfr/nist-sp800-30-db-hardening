@@ -46,7 +46,7 @@ $$\text{Risk Score} = \text{Likelihood (1–3)} \times \text{Severity (1–3)}$$
 ## 4. Implementation Artifacts
 
 ### Perimeter Firewall Configuration (`configs/ufw-rules.sh`)
-\`\`\`bash
+```bash
 #!/usr/bin/env bash
 # Perimeter Access Control Hardening Script
 set -euo pipefail
@@ -58,18 +58,6 @@ sudo ufw default allow outgoing
 # Allow MySQL access exclusively through VPN gateway subnet
 sudo ufw allow from 10.8.0.0/24 to any port 3306 proto tcp
 sudo ufw --force enable
-\`\`\`
-
-### MySQL Hardened Configuration (`configs/mysqld-hardened.cnf`)
-\`\`\`ini
-[mysqld]
-# Bind exclusively to internal VPN adapter
-bind-address = 10.8.0.1
-
-# Enforce secure transit
-require_secure_transport = ON
-tls_version = TLSv1.3
-\`\`\`
 
 ---
 
