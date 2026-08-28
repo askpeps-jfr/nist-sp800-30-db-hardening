@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIST SP 800-30: RiskMatrix DB Auditor</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --border-color: #30363d;
+            --accent-color: #58a6ff;
+            --text-color: #c9d1d9;
+            --success-color: #2ea44f;
+            --alert-color: #f85149;
+            --warning-color: #db6d28;
+            --terminal-bg: #010409;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .matrix-container {
+            width: 100%;
+            max-width: 1180px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .header-block {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .header-block h1 {
+            font-size: 26px;
+            color: #f0f6fc;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-block p {
+            font-size: 14.5px;
+            color: #8b949e;
+        }
+
+        /* Top Assessment Scorecards */
+        .scorecard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 850px) {
+            .scorecard-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .card h3 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #8b949e;
+        }
+
+        .card-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 8px 0 4px 0;
+            font-family: "SFMono-Regular", Consolas, monospace;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            color: #8b949e;
+        }
+
+        .val-critical { color: var(--alert-color); text-shadow: 0 0 12px rgba(248, 81, 73, 0.4); }
+        .val-warning { color: var(--warning-color); text-shadow: 0 0 12px rgba(219, 109, 40, 0.4); }
+        .val-success { color: var(--success-color); text-shadow: 0 0 12px rgba(46, 164, 79, 0.4); }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        .section-header {
+            font-size: 16px;
+            color: #f0f6fc;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 10px;
+        }
+
+        /* Sliders Box */
+        .calc-panel {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            color: #f0f6fc;
+        }
+
+        .slider-header span.val-label {
+            color: var(--accent-color);
+            font-family: "SFMono-Regular", Consolas, monospace;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #21262d;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(88, 166, 255, 0.5);
+        }
+
+        /* Toggles */
+        .control-toggle-card {
+            background-color: #21262d;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .control-label-box h3 {
+            font-size: 14px;
+            margin-bottom: 3px;
+            color: #f0f6fc;
+        }
+
+        .control-label-box p {
+            font-size: 12px;
+            color: #8b949e;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider-toggle {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider-toggle:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 3px; bottom: 3px;
+            background-color: #8b949e;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider-toggle {
+            background-color: var(--success-color);
+            box-shadow: 0 0 10px rgba(46, 164, 79, 0.4);
+        }
+
+        input:checked + .slider-toggle:before {
+            transform: translateX(22px);
+            background-color: #ffffff;
+        }
+
+        /* Console Audit Log */
+        .console-box {
+            background-color: var(--terminal-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: "SFMono-Regular", Consolas, "JetBrains Mono", monospace;
+            font-size: 13px;
+            height: 440px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            color: #e6edf3;
+            line-height: 1.6;
+        }
+
+        .log-crit { color: var(--alert-color); }
+        .log-warn { color: var(--warning-color); }
+        .log-pass { color: var(--success-color); }
+
+        .meta-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12.5px;
+            color: #8b949e;
+        }
+
+        @media (max-width: 768px) {
+            .meta-footer { flex-direction: column; gap: 8px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="matrix-container">
+    <div class="header-block">
+        <h1>📊 NIST SP 800-30: RiskMatrix DB Auditor</h1>
+        <p>Quantitative Risk Calculation & Database Hardening Model (Risk = Likelihood × Impact − Mitigating Controls)</p>
+    </div>
+
+    <!-- Scorecards -->
+    <div class="scorecard-grid">
+        <div class="card" id="cardRisk">
+            <h3>Calculated Risk Level</h3>
+            <div class="card-value val-critical" id="valRiskScore">CRITICAL (25)</div>
+            <div class="card-desc" id="lblRiskDesc">Unmitigated perimeter exposure across datastore.</div>
+        </div>
+        <div class="card">
+            <h3>Hardening Controls Applied</h3>
+            <div class="card-value val-warning" id="valControls">0 / 4 Active</div>
+            <div class="card-desc">NIST SP 800-53 Technical Controls.</div>
+        </div>
+        <div class="card">
+            <h3>Compliance Posture</h3>
+            <div class="card-value val-critical" id="valCompliance">Non-Compliant</div>
+            <div class="card-desc">Audit status: Target Database Server.</div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <!-- Controls Side -->
+        <div>
+            <div class="section-header">Step 1: NIST Risk Factor Scoring</div>
+            <div class="calc-panel">
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Threat Event Likelihood</span>
+                        <span class="val-label" id="lblLikelihood">5 - Very High</span>
+                    </div>
+                    <input type="range" id="rngLikelihood" min="1" max="5" value="5" oninput="calculateRisk()">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <span>Vulnerability Impact Magnitude</span>
+                        <span class="val-label" id="lblImpact">5 - Catastrophic</span>
+                    </div>
+                    <input type="range" id="rngImpact" min="1" max="5" value="5" oninput="calculateRisk()">
+                </div>
+            </div>
+
+            <div class="section-header">Step 2: Database Hardening Controls</div>
+
+            <div class="control-toggle-card">
+                <div class="control-label-box">
+                    <h3>Enforce TLS 1.3 Transport Encryption</h3>
+                    <p>Mitigate cleartext SQL packet sniffing on port 3306</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="chk1" onchange="calculateRisk()">
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+
+            <div class="control-toggle-card">
+                <div class="control-label-box">
+                    <h3>Rotate & Restrict Default DBA Passwords</h3>
+                    <p>Remediate default root credentials & enforce complexity</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="chk2" onchange="calculateRisk()">
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+
+            <div class="control-toggle-card">
+                <div class="control-label-box">
+                    <h3>Implement RBAC Principle of Least Privilege</h3>
+                    <p>Revoke wildcard privileges from application datastores</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="chk3" onchange="calculateRisk()">
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+
+            <div class="control-toggle-card">
+                <div class="control-label-box">
+                    <h3>Enable Centralized Audit Telemetry</h3>
+                    <p>Stream SQL queries and authentication records to SIEM</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="chk4" onchange="calculateRisk()">
+                    <span class="slider-toggle"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Audit Log Side -->
+        <div>
+            <div class="section-header">Live NIST Audit & Remediation Log</div>
+            <div id="auditLog" class="console-box" role="log"></div>
+        </div>
+    </div>
+
+ <div class="meta-footer">
+    <span>Framework: NIST SP 800-30 Rev. 1</span>
+    <span>Target: Relational SQL Datastore Subnet</span>
+    <span>Course: Course 5 (Assets, Threats, and Vulnerabilities)</span>
+</div>
+
+<script>
+    const logBox = document.getElementById('auditLog');
+
+    function logMessage(text, type = "info") {
+        const span = document.createElement('div');
+        if (type === "crit") span.className = "log-crit";
+        if (type === "warn") span.className = "log-warn";
+        if (type === "pass") span.className = "log-pass";
+        span.innerText = `[${new Date().toLocaleTimeString()}] ${text}`;
+        logBox.prepend(span);
+    }
+
+    function calculateRisk() {
+        const likelihood = parseInt(document.getElementById('rngLikelihood').value);
+        const impact = parseInt(document.getElementById('rngImpact').value);
+        
+        const labels = ["", "1 - Very Low", "2 - Low", "3 - Moderate", "4 - High", "5 - Very High / Critical"];
+        document.getElementById('lblLikelihood').innerText = labels[likelihood];
+        document.getElementById('lblImpact').innerText = labels[impact];
+
+        const c1 = document.getElementById('chk1').checked;
+        const c2 = document.getElementById('chk2').checked;
+        const c3 = document.getElementById('chk3').checked;
+        const c4 = document.getElementById('chk4').checked;
+        const activeCount = [c1, c2, c3, c4].filter(Boolean).length;
+
+        document.getElementById('valControls').innerText = `${activeCount} / 4 Active`;
+
+        // Quantitative Risk Formula: (L * I) - (Mitigations * 4)
+        let rawScore = likelihood * impact;
+        let mitigatedScore = Math.max(1, rawScore - (activeCount * 4));
+
+        const scoreEl = document.getElementById('valRiskScore');
+        const compEl = document.getElementById('valCompliance');
+        const descEl = document.getElementById('lblRiskDesc');
+
+        if (mitigatedScore >= 18) {
+            scoreEl.className = "card-value val-critical";
+            scoreEl.innerText = `CRITICAL (${mitigatedScore})`;
+            compEl.className = "card-value val-critical";
+            compEl.innerText = "Non-Compliant";
+            descEl.innerText = "Severe exploit exposure across datastore perimeter.";
+        } else if (mitigatedScore >= 10) {
+            scoreEl.className = "card-value val-warning";
+            scoreEl.innerText = `MODERATE (${mitigatedScore})`;
+            compEl.className = "card-value val-warning";
+            compEl.innerText = "Partial Alignment";
+            descEl.innerText = "Residual risk remains. Additional controls required.";
+        } else {
+            scoreEl.className = "card-value val-success";
+            scoreEl.innerText = `LOW / SECURE (${mitigatedScore})`;
+            compEl.className = "card-value val-success";
+            compEl.innerText = "Hardened (Compliant)";
+            descEl.innerText = "Database baseline fully hardened under NIST SP 800-30.";
+        }
+
+        // Audit Trail Logs
+        if (activeCount === 4) {
+            logMessage("NIST AUDIT PASS: All 4 defense-in-depth baseline controls active. Risk score dropped to secure threshold.", "pass");
+        } else if (activeCount > 0) {
+            logMessage(`RISK AUDIT: Hardening applied (${activeCount}/4). Residual risk recalibrated to Score ${mitigatedScore}.`, "warn");
+        } else {
+            logMessage("CRITICAL AUDIT: Datastore operates without technical controls. Default passwords & cleartext transport active.", "crit");
+        }
+    }
+
+    // Initial load
+    logMessage("Initializing NIST SP 800-30 Database Risk Assessment Matrix...", "info");
+    calculateRisk();
+</script>
+
+</body>
+</html>

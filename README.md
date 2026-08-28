@@ -1,74 +1,40 @@
-# nist-sp800-30-db-hardening
-NIST SP 800-30 Rev. 1 Risk Assessment &amp; Cloud Database Hardening Suite
-# NIST SP 800-30 Rev. 1 Vulnerability Assessment & Database Hardening
+# NIST SP 800-30 Database Hardening & Quantitative Risk Assessment
 
-An enterprise-grade threat modeling and perimeter defense assessment for a publicly exposed cloud database server, structured in compliance with the **NIST SP 800-30 Rev. 1** risk management framework.
+A quantitative risk assessment and database security remediation project aligned with **NIST SP 800-30 Rev. 1 (Guide for Conducting Risk Assessments)** and **NIST SP 800-53 Technical Controls**.
 
 ---
 
 ## 1. Executive Summary
 
-* **Target System:** Linux-based remote MySQL database server (128GB RAM, IPv4).
-* **Vulnerability:** Unauthenticated, unrestricted public internet access (`0.0.0.0/0:3306`) since deployment.
-* **Core Business Impact:** Exposure of global customer records, campaign analytics, and prospective client datasets used by remote marketing teams.
-* **Risk Outcome:** Prior to remediation, external data exfiltration carried a critical **Risk Score of 9 (High)**. Following defense-in-depth controls, risk is reduced to acceptable operational baselines.
+* **Target System:** Production Linux / MySQL Database Enclave (TCP port 3306) hosting customer and sales analytics data.
+* **Identified Vulnerabilities:** Unrestricted public internet access, default administrative credentials, excessive wildcard privileges, and unencrypted transport.
+* **Risk Calculation Model:** $\text{Risk Score} = (\text{Likelihood} \times \text{Impact}) - \text{Mitigating Controls}$
+* **Remediation Result:** Reduced baseline risk from **Critical (25/25)** down to **Secure (1/25)** across all perimeter, authentication, and encryption vectors.
 
 ---
 
-## 2. NIST SP 800-30 Qualitative Risk Assessment Matrix
+## 2. NIST SP 800-30 9-Step Assessment Execution
 
-Risk is calculated using the qualitative scoring formula:
-$$\text{Risk Score} = \text{Likelihood (1–3)} \times \text{Severity (1–3)}$$
-
-| Threat Source | Threat Event | Likelihood (1–3) | Severity (1–3) | Initial Risk Score | Post-Remediation Risk |
-| :--- | :--- | :---: | :---: | :---: | :---: |
-| **Hacker (Outsider)** | Sensitive Information Exfiltration | 3 | 3 | **9 (High)** | **2 (Low)** |
-| **Employee (Insider)** | Unauthorized Alteration / Data Deletion | 2 | 3 | **6 (Moderate)** | **2 (Low)** |
-| **Competitor (Outsider)** | Denial of Service (DoS) Outage | 2 | 2 | **4 (Moderate)** | **1 (Low)** |
-
----
-
-## 3. Defense-in-Depth Remediation Plan
-
-### A. Perimeter & Network Layer
-* **Firewall Ingress Restriction:** Block public exposure to TCP port `3306` via UFW. Restrict database traffic exclusively to the internal VPN pool (`10.8.0.0/24`).
-
-### B. Transport & Data Layer
-* **TLS 1.3 Enforcement:** Disable legacy SSL protocols and require encrypted client-server sessions.
-* **Encryption at Rest:** Implement AES-256 tablespace encryption for sensitive customer tables.
-
-### C. Identity & Access Management (IAM)
-* **Principle of Least Privilege & RBAC:** Terminate root remote login capabilities; create granular read/write user roles.
-* **Multi-Factor Authentication (MFA):** Enforce MFA gateways across all VPN entry points for remote employees.
+| Step | Assessment Phase | Target Implementation |
+| :---: | :--- | :--- |
+| **1** | System Characterization | Remote Linux / MySQL server hosting sensitive customer analytics. |
+| **2** | Threat Identification | External unauthorized access, credential stuffing, and packet sniffing. |
+| **3** | Vulnerability Identification | Direct public exposure to the WAN, legacy TLS defaults, missing MFA. |
+| **4** | Likelihood Determination | Rated **5 (Very High)** due to open unauthenticated endpoints. |
+| **5** | Impact Analysis | Rated **5 (Catastrophic)** due to direct database exposure and SPII loss. |
+| **6** | Risk Determination | Baseline score evaluated at **25 (Maximum Critical Risk)**. |
+| **7** | Control Recommendations | Enforce VPN perimeter, Least Privilege RBAC, TLS 1.3, and SIEM logging. |
+| **8** | Results Documentation | Formal Vulnerability Assessment Report (VAR) and remediation plan. |
 
 ---
 
-## 4. Implementation Artifacts
+## 3. Interactive Risk Calculator Sandbox & Repository
 
-### Perimeter Firewall Configuration (`configs/ufw-rules.sh`)
-```bash
-#!/usr/bin/env bash
-# Perimeter Access Control Hardening Script
-set -euo pipefail
+This repository includes **RiskMatrix 800-30**, an interactive client-side calculator modeling real-time quantitative risk scores and NIST SP 800-53 technical controls.
 
-# Block public access to database port
-sudo ufw default deny incoming
-sudo ufw default allow outgoing
-
-# Allow MySQL access exclusively through VPN gateway subnet
-sudo ufw allow from 10.8.0.0/24 to any port 3306 proto tcp
-sudo ufw --force enable
+* **Live Interactive Demo:** [Launch RiskMatrix 800-30](https://askpeps-jfr.github.io/nist-sp800-30-db-hardening/app/)
+* **Project Repository:** [nist-sp800-30-db-hardening on GitHub](https://github.com/askpeps-jfr/nist-sp800-30-db-hardening)
+* **Application Source Code:** [`app/index.html`](https://github.com/askpeps-jfr/nist-sp800-30-db-hardening/blob/main/app/index.html)
 
 ---
-
-## 5. Verification & Compliance Controls
-
-Run `tests/verify-controls.sh` to confirm proper interface binding and encrypted socket enforcement:
-
-\`\`\`bash
-chmod +x tests/verify-controls.sh
-./tests/verify-controls.sh
-\`\`\`
-
----
-*Developed as part of the JFRsec Cybersecurity Portfolio Suite (Milestone 5: Assets, Threats & Vulnerabilities).*
+*Developed as part of the JFRsec Cybersecurity Portfolio Suite (Course 5: Assets, Threats, and Vulnerabilities).*

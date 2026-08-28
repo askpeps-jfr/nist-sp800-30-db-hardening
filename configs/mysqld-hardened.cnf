@@ -1,0 +1,15 @@
+[mysqld]
+# Bind address to internal loopback/VLAN interface only (No open WAN binding)
+bind-address = 127.0.0.1
+
+# Enforce secure transport (TLS 1.3)
+require_secure_transport = ON
+tls_version = TLSv1.3
+
+# Disable local data load functionality to mitigate arbitrary file read exploits
+local_infile = 0
+
+# Enable audit logging and query telemetry
+general_log = 1
+general_log_file = /var/log/mysql/audit_query.log
+log_error = /var/log/mysql/error.log
