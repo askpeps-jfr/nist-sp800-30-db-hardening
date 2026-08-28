@@ -36,5 +36,4 @@ This repository includes **RiskMatrix 800-30**, an interactive client-side calcu
 * **Project Repository:** [nist-sp800-30-db-hardening on GitHub](https://github.com/askpeps-jfr/nist-sp800-30-db-hardening)
 * **Application Source Code:** [`app/index.html`](https://github.com/askpeps-jfr/nist-sp800-30-db-hardening/blob/main/app/index.html)
 
----
 *Developed as part of the JFRsec Cybersecurity Portfolio Suite (Course 5: Assets, Threats, and Vulnerabilities).*
